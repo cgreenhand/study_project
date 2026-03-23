@@ -105,7 +105,7 @@ public:
 
     const char* getPluginVersion() const TRT_NOEXCEPT override;
 
-    const nvinfer1::PluginFieldCollection* getFieldNames() const TRT_NOEXCEPT override;
+    const nvinfer1::PluginFieldCollection* getFieldNames() TRT_NOEXCEPT override;
 
     nvinfer1::IPluginV2IOExt* createPlugin(const char* name,
                                             const nvinfer1::PluginFieldCollection* fc) TRT_NOEXCEPT override;
