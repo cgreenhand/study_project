@@ -259,7 +259,7 @@ const char* YoloLayerPlugin::getPluginVersion() const TRT_NOEXCEPT {
 }
 
 
-void YoloLayerPlugin::destory() TRT_NOEXCEPT {
+void YoloLayerPlugin::destroy() TRT_NOEXCEPT {
     delete this;
 }
 

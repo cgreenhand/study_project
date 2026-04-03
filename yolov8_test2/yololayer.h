@@ -19,7 +19,7 @@ public:
 
     nvinfer1::Dims getOutputDimensions(int index, const nvinfer1::Dims* inputs, int nbInputDims) TRT_NOEXCEPT override;
 
-    int initalize() TRT_NOEXCEPT override;
+    int initialize() TRT_NOEXCEPT override;
 
     virtual void terminate() TRT_NOEXCEPT override {}
 
@@ -32,7 +32,7 @@ public:
 
     virtual void serialize(void* buffer) const TRT_NOEXCEPT override;
 
-    bool supportFormatCombination(int pos, const PluginTensorDesc* inOut, int nbInputs,
+    bool supportsFormatCombination(int pos, const PluginTensorDesc* inOut, int nbInputs,
                                 int nbOutputs) const TRT_NOEXCEPT override{
         return inOut[pos].format == TensorFormat::kLINEAR && inOut[pos].type == DataType::kFLOAT;
     }
@@ -41,7 +41,7 @@ public:
 
     const char* getPluginVersion() const TRT_NOEXCEPT override;
 
-    void destory() TRT_NOEXCEPT override;
+    void destroy() TRT_NOEXCEPT override;
 
     IPluginV2IOExt* clone() const TRT_NOEXCEPT override;
 
