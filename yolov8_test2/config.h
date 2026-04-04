@@ -1,5 +1,6 @@
-#define USE_FP16
-//#define USE_FP32
+#pragma once
+// #define USE_FP16
+#define USE_FP32
 //#define USE_INT8
 
 const static char* kInputTensorName = "images";
