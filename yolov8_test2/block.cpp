@@ -238,3 +238,48 @@ nvinfer1::IShuffleLayer* DFL(nvinfer1::INetworkDefinition* network, std::map<std
 }   
 
 
+nvinfer1::IPluginV2Layer* addYoloLayer(nvinfer1::INetworkDefinition* network,
+                                        std::vector<nvinfer1::IConcatenationLayer*>dets, const int* px_array,
+                                        int px_array_num, int num_class, bool is_segmentation, bool is_pose,
+                                        bool is_obb)
+{
+    auto creator = getPluginRegistry()->getPluginCreator("YoloLayer_TRT","1");
+    const int netinfo_count = 9;
+    const int total_count = netinfo_count + px_array_num;
+
+    std::vector<int> combinedInfo(total_count);
+    combinedInfo[0] = num_class;
+    combinedInfo[1] = kNumberOfPoints;
+    combinedInfo[2] = kConfThreshKeypoints;
+    combinedInfo[3] = kInputW;
+    combinedInfo[4] = kInputH;
+    combinedInfo[5] = kMaxNumOutputBbox;
+    combinedInfo[6] = is_segmentation;
+    combinedInfo[7] = is_pose;
+    combinedInfo[8] = is_obb;
+
+    std::copy(px_array, px_array+px_array_num, combinedInfo.begin()+netinfo_count);
+    nvinfer1::PluginField pluginField;
+    pluginField.name = "combinedInfo";
+    pluginField.data = combinedInfo.data();
+    pluginField.type = nvinfer1::PluginFieldType::kINT32;
+    pluginField.length = combinedInfo.size();
+
+    nvinfer1::PluginFieldCollection pluginFieldCollection;
+    pluginFieldCollection.nbFields = 1;
+    pluginFieldCollection.fields = &pluginField;
+
+    nvinfer1::IPluginV2* pluginObject = creator->createPlugin("yololayer",&pluginFieldCollection);
+
+    std::vector<nvinfer1::ITensor*> inputTensors;
+    for(auto det : dets){
+        inputTensors.push_back(det->getOutput(0));
+    }
+
+    nvinfer1::IPluginV2Layer* yoloLayer = network->addPluginV2(inputTensors.data(),inputTensors.size(),*pluginObject);
+
+    return yoloLayer;
+
+}
+
+
