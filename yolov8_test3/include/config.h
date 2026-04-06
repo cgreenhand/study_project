@@ -5,5 +5,6 @@ namespace yoloConfig{
     inline const char* kInputTensorName = "images";
     inline const char* kOutputTensorName = "output";
     inline const int kClsNum = 80;
+    inline const int kinputSize = 640; 
     
 }
