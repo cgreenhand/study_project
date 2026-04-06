@@ -80,14 +80,6 @@ static nvinfer1::IElementWiseLayer* addBottleNeck(nvinfer1::INetworkDefinition* 
 
 
 
-
-
-
-
-
-
-
-
 nvinfer1::IElementWiseLayer* convBnSiLu(nvinfer1::INetworkDefinition* network, 
                                         nvinfer1::ITensor& input, std::map<std::string, nvinfer1::Weights>& weightMap,
                                         int ch, int k, int s, int p, std::string lname)
@@ -110,26 +102,94 @@ nvinfer1::IElementWiseLayer* convBnSiLu(nvinfer1::INetworkDefinition* network,
 }
 
 nvinfer1::IElementWiseLayer* C2F(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
-                                std::map<std::string, nvinfer1::Weights> weigthMap, int c_in, int c_out, int nd,
+                                std::map<std::string, nvinfer1::Weights>& weigthMap, int c_in, int c_out, int nd,
                                 bool shortcut, float e, std::string lname)
-{
+{   
+    int c_ = int((float)c_out * e);
+    nvinfer1::IElementWiseLayer* conv1 = convBnSiLu(network,input,weigthMap,c_out,1,1,0,lname+"cv1");
+    assert(conv1 && "C2F -> conv1 error");
 
+    nvinfer1::Dims d = conv1->getOutput(0)->getDimensions();
 
+    nvinfer1::ISliceLayer* split1 = network->addSlice(*conv1->getOutput(0),nvinfer1::Dims3{0,0,0},nvinfer1::Dims{d.d[0]/2,d.d[1],d.d[2]},nvinfer1::Dims{1,1,1});
+    nvinfer1::ISliceLayer* split2 = network->addSlice(*conv1->getOutput(0),nvinfer1::Dims3{d.d[0]/2,0,0},nvinfer1::Dims{d.d[0]/2,d.d[1],d.d[2]},nvinfer1::Dims{1,1,1});
+
+    nvinfer1::ITensor * bottlencek_in = split2->getOutput(0);
+    nvinfer1::ITensor* inputTensor0[] = {split1->getOutput(0),split2->getOutput(0)};
+    nvinfer1::IConcatenationLayer* cat1 = network->addConcatenation(inputTensor0,2);
+
+    for(int i = 0 ; i < nd ; i++){
+        nvinfer1::IElementWiseLayer* bottleneck = addBottleNeck(network,*bottlencek_in,weigthMap,c_,c_,true,0.5,lname+".m."+std::to_string(i));
+        bottlencek_in = bottleneck->getOutput(0);
+
+        nvinfer1::ITensor* inputTensors[] = {cat1->getOutput(0),bottlencek_in};
+        cat1 = network->addConcatenation(inputTensors,2);
+    }
+
+    nvinfer1::IElementWiseLayer* conv2 = convBnSiLu(network,*cat1->getOutput(0),weigthMap,c_out,1,1,0,lname+"cv2");
+
+    assert(conv2 && "C2F -> conv2 error");
+
+    return conv2; 
 }
 
 nvinfer1::IElementWiseLayer* SPPF(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
-                                std::map<std::string, nvinfer1::Weights> weightMap,int c_in, int c_out, std::string lname)
+                                std::map<std::string, nvinfer1::Weights>& weightMap,int c_in, int c_out, int k, std::string lname)
 {
+    int c_ = c_out / 2;
+    nvinfer1::IElementWiseLayer* conv1 = convBnSiLu(network,input,weightMap,c_,1,1,0,lname+".cv1");
+    nvinfer1::IPoolingLayer* pool1 = network->addPoolingNd(*conv1->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::Dims{k,k});
+    pool1->setStrideNd(nvinfer1::DimsHW{1,1});
+    pool1->setPaddingNd(nvinfer1::DimsHW{k/2,k/2});
+
+    nvinfer1::IPoolingLayer* pool2 = network->addPoolingNd(*pool1->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::Dims{k,k});
+    pool2->setStrideNd(nvinfer1::DimsHW{1,1});
+    pool2->setPaddingNd(nvinfer1::DimsHW{k/2,k/2});
+
+    nvinfer1::IPoolingLayer* pool3 = network->addPoolingNd(*pool2->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::Dims{k,k});
+    pool3->setStrideNd(nvinfer1::DimsHW{1,1});
+    pool3->setPaddingNd(nvinfer1::DimsHW{k/2,k/2});
+
+    nvinfer1::ITensor* inputTensors[] = {conv1->getOutput(0),pool1->getOutput(0),pool2->getOutput(0),pool3->getOutput(0)};
+
+    nvinfer1::IConcatenationLayer* cat = network->addConcatenation(inputTensors,4);
+
+    nvinfer1::IElementWiseLayer* conv2 = convBnSiLu(network,*cat->getOutput(0),weightMap,c_out,1,1,0,lname+"cv2");
+
+    assert(conv2 && "SPPF -> conv2 error");
+
+    return conv2;
+
 
 }
 
-nvinfer1::IElementWiseLayer* DFL(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
-                                std::map<std::string, nvinfer1::Weights> weightMap,
+nvinfer1::IShuffleLayer* DFL(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
+                                std::map<std::string, nvinfer1::Weights>& weightMap,
                                 int ch, int grid, int k , int s, int p, std::string lname)
 {
 
+    //  64,grid
+    nvinfer1::IShuffleLayer* shuff1 = network->addShuffle(input);
+    shuff1->setReshapeDimensions(nvinfer1::Dims3{4,16,grid});
+    shuff1->setSecondTranspose(nvinfer1::Permutation{1,0,2});
+    //  16,4,frid
+    nvinfer1::ISoftMaxLayer* softmax = network->addSoftMax(*shuff1->getOutput(0));
+
+    nvinfer1::Weights bias = {nvinfer1::DataType::kFLOAT,nullptr,0};
+    nvinfer1::IConvolutionLayer* conv1 = network->addConvolution(*softmax->getOutput(0),1,nvinfer1::DimsHW{1,1},weightMap[lname],bias);
+    conv1->setStrideNd(nvinfer1::DimsHW{s,s});
+    conv1->setPaddingNd(nvinfer1::DimsHW{p,p});
+
+    nvinfer1::IShuffleLayer* shuff2 = network->addShuffle(*conv1->getOutput(0));
+    shuff2->setReshapeDimensions(nvinfer1::Dims2{4,grid});
+
+    assert(shuff2 && "DFL shuff2 error");
+    
+    return shuff2;
+
 }
-                            
+
+// DFL ->  4,8400  4+cls,8400  4代表在原特征图上的偏移？
 nvinfer1::IPluginV2Layer* addYoloLayer()
 {
 

@@ -15,9 +15,9 @@ nvinfer1::IElementWiseLayer* C2F(nvinfer1::INetworkDefinition* network, nvinfer1
                                 bool shortcut, float e, std::string lname);
 
 nvinfer1::IElementWiseLayer* SPPF(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
-                                std::map<std::string, nvinfer1::Weights>& weightMap,int c_in, int c_out, std::string lname);
+                                std::map<std::string, nvinfer1::Weights>& weightMap,int c_in, int c_out, int k, std::string lname);
 
-nvinfer1::IElementWiseLayer* DFL(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
+nvinfer1::IShuffleLayer* DFL(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
                                 std::map<std::string, nvinfer1::Weights>& weightMap,
                                 int ch, int grid, int k , int s, int p, std::string lname) ;
                             
