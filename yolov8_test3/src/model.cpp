@@ -31,7 +31,37 @@ void static calculateStrides(nvinfer1::IElementWiseLayer* conv_layers[], int siz
         strides[i] = reference_size / feature_map_size;
     }
 }
+// std::map<std::string, nvinfer1::Weights> loadWeight(const std::string file) {
+//     std::cout << "Loading weights: " << file << std::endl;
+//     std::map<std::string, nvinfer1::Weights> WeightMap;
 
+//     std::ifstream input(file);
+//     assert(input.is_open() &&
+//            "Unable to load weight file. please check if the "
+//            ".wts file path is right!!!!!!");
+
+//     int32_t count;
+//     input >> count;
+//     assert(count > 0 && "Invalid weight map file.");
+
+//     while (count--) {
+//         nvinfer1::Weights wt{nvinfer1::DataType::kFLOAT, nullptr, 0};
+//         uint32_t size;
+
+//         std::string name;
+//         input >> name >> std::dec >> size;
+//         wt.type = nvinfer1::DataType::kFLOAT;
+
+//         uint32_t* val = reinterpret_cast<uint32_t*>(malloc(sizeof(val) * size));
+//         for (uint32_t x = 0, y = size; x < y; x++) {
+//             input >> std::hex >> val[x];
+//         }
+//         wt.values = val;
+//         wt.count = size;
+//         WeightMap[name] = wt;
+//     }
+//     return WeightMap;
+// }
 
 static std::map<std::string, nvinfer1::Weights> loadWeight(const std::string& wts_path)
 {
@@ -50,11 +80,27 @@ static std::map<std::string, nvinfer1::Weights> loadWeight(const std::string& wt
         uint32_t size;
         std::string name;
         input >> name >> std::dec >> size;
+        // 
+        if (size == 0 || name.empty()) {
+            std::cout << "！！！发现异常权重项: " << name << " Size: " << size << std::endl;
+        }
+
         wt.type = nvinfer1::DataType::kFLOAT;
         uint32_t* val = reinterpret_cast<uint32_t*>(malloc(sizeof(uint32_t)*size));
         for(uint32_t x = 0 ; x<size; x++){
-            input >> std::hex >> val[x];
+            if (!(input >> std::hex >> val[x])) {
+                std::cerr << "致命错误：权重数据读取中断！层名: " << name << " 指标: " << x << std::endl;
+                exit(-1);
+            }
         }
+        // 
+        // wt.type = nvinfer1::DataType::kFLOAT;
+        // uint32_t* val = reinterpret_cast<uint32_t*>(malloc(sizeof(uint32_t)*size));
+        // for(uint32_t x = 0 ; x<size; x++){
+        //     input >> std::hex >> val[x];
+        // }
+
+
 
         wt.values = val;
         wt.count = size;
@@ -112,7 +158,6 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     nvinfer1::IConcatenationLayer* cat11 = network->addConcatenation(inputTensor11,2);      
     
     nvinfer1::IElementWiseLayer* conv12 = C2F(network,*cat11->getOutput(0),weightMap,get_width(512,gw,max_channels),get_width(512,gw,max_channels),get_depth(3,gd),false,0.5,"model.12");
-
 
     nvinfer1::IResizeLayer* upsample2 = network->addResize(*conv12->getOutput(0));
     upsample2->setResizeMode(nvinfer1::ResizeMode::kNEAREST);

@@ -2,7 +2,7 @@
 #include <math.h>
 #include <cassert>
 #include "config.h"
-
+#include <iostream>
 
 
 // 实现batchnorm 和 silu
@@ -11,8 +11,8 @@ static nvinfer1::IScaleLayer* addBatchNorm2d(nvinfer1::INetworkDefinition* netwo
 {
     const float* running_mean = static_cast<const float*>(weightMap[lname+".running_mean"].values);
     const float* running_var = static_cast<const float*>(weightMap[lname+".running_var"].values);;
-    const float* gamma = static_cast<const float*>(weightMap[lname+".running_weight"].values);;
-    const float* beta = static_cast<const float*>(weightMap[lname+".running_bias"].values);;
+    const float* gamma = static_cast<const float*>(weightMap[lname+".weight"].values);;
+    const float* beta = static_cast<const float*>(weightMap[lname+".bias"].values);;
     const int len = weightMap[lname+".running_mean"].count;
 
     float* scval = reinterpret_cast<float *>(malloc(sizeof(float)*len));
@@ -138,15 +138,19 @@ nvinfer1::IElementWiseLayer* SPPF(nvinfer1::INetworkDefinition* network, nvinfer
 {
     int c_ = c_out / 2;
     nvinfer1::IElementWiseLayer* conv1 = convBnSiLu(network,input,weightMap,c_,1,1,0,lname+".cv1");
-    nvinfer1::IPoolingLayer* pool1 = network->addPoolingNd(*conv1->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::Dims{k,k});
+
+    nvinfer1::IPoolingLayer* pool1 = network->addPoolingNd(*conv1->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::DimsHW{k,k});
+    
+
+    
     pool1->setStrideNd(nvinfer1::DimsHW{1,1});
     pool1->setPaddingNd(nvinfer1::DimsHW{k/2,k/2});
 
-    nvinfer1::IPoolingLayer* pool2 = network->addPoolingNd(*pool1->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::Dims{k,k});
+    nvinfer1::IPoolingLayer* pool2 = network->addPoolingNd(*pool1->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::DimsHW{k,k});
     pool2->setStrideNd(nvinfer1::DimsHW{1,1});
     pool2->setPaddingNd(nvinfer1::DimsHW{k/2,k/2});
 
-    nvinfer1::IPoolingLayer* pool3 = network->addPoolingNd(*pool2->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::Dims{k,k});
+    nvinfer1::IPoolingLayer* pool3 = network->addPoolingNd(*pool2->getOutput(0),nvinfer1::PoolingType::kMAX,nvinfer1::DimsHW{k,k});
     pool3->setStrideNd(nvinfer1::DimsHW{1,1});
     pool3->setPaddingNd(nvinfer1::DimsHW{k/2,k/2});
 
@@ -162,6 +166,8 @@ nvinfer1::IElementWiseLayer* SPPF(nvinfer1::INetworkDefinition* network, nvinfer
 
 
 }
+
+
 
 nvinfer1::IShuffleLayer* DFL(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
                                 std::map<std::string, nvinfer1::Weights>& weightMap,

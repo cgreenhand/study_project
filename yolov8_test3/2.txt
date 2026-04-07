@@ -1,0 +1,85 @@
+[New Thread 0x7fffe0ffb000 (LWP 63151)]
+[New Thread 0x7fffcffff000 (LWP 63152)]
+[New Thread 0x7fffcf7fe000 (LWP 63161)]
+[TRT] [MemUsageChange] Init CUDA: CPU +14, GPU +0, now: CPU 15, GPU 844 (MiB)
+[TRT] [MemUsageChange] Init builder kernel library: CPU +1449, GPU +266, now: CPU 1541, GPU 1110 (MiB)
+开始构建网络定义...
+Loading weights: yolov8s.wts
+[TRT] The implicit batch dimension mode has been deprecated. Please create the network with NetworkDefinitionCreationFlag::kEXPLICIT_BATCH flag whenever possible.
+[TRT] 3: (Unnamed Layer* 8) [Convolution]:kernel weights has count 0 but 4096 was expected
+[TRT] 4: (Unnamed Layer* 8) [Convolution]: count of 0 weights in kernel, but kernel dimensions (1,1) with 64 input channels, 64 output channels and 1 groups were specified. Expected Weights count is 64 * 1*1 * 64 / 1 = 4096
+[TRT] 4: [convolutionNode.cpp::computeOutputExtents::58] Error Code 4: Internal Error ((Unnamed Layer* 8) [Convolution]: number of kernel weights does not match tensor dimensions)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [scaleLayer.h::setScale::23] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setScale::23, condition: scale.count > 0
+)
+[TRT] 3: [scaleLayer.h::setShift::24] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setShift::24, condition: shift.count > 0
+)
+[TRT] 3: [scaleLayer.h::setPower::25] Error Code 3: API Usage Error (Parameter check failed at: /_src/build/x86_64-gnu/release/optimizer/api/layers/scaleLayer.h::setPower::25, condition: power.count > 0
+)
+[TRT] 3: [network.cpp::addResize::1421] Error Code 3: API Usage Error (Parameter check failed at: optimizer/api/network.cpp::addResize::1421, condition: input.getDimensions().nbDims > 0
+)
+
+Thread 1 "yolov8_det" received signal SIGSEGV, Segmentation fault.
+0x0000555555563333 in nvinfer1::IResizeLayer::setResizeMode (this=0x0, resizeMode=nvinfer1::InterpolationMode::kNEAREST)
+    at /home/happy/TensorRT-8.6.1.6/include/NvInfer.h:5093
+5093            mImpl->setResizeMode(resizeMode);
+(gdb) 
