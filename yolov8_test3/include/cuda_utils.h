@@ -11,7 +11,7 @@
             std::cerr << "CUDA error " << error_code << " at " << __FILE__ << ":" << __LINE__; \
             assert(0);                                                                         \
         }                                                                                      \
-    }f
+    }
 #endif  // CUDA_CHECK
 
 #endif  // TRTX_CUDA_UTILS_H_
