@@ -9,10 +9,19 @@
 static nvinfer1::IScaleLayer* addBatchNorm2d(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input,
                                         std::map<std::string, nvinfer1::Weights>& weightMap, std::string lname, float eps)
 {
+
+
+    std::string mean_key = lname + ".running_mean";
+    if (weightMap.count(mean_key) == 0 || weightMap[mean_key].count == 0) {
+        std::cerr << "\n[致命错误] BN层权重缺失!" << std::endl;
+        std::cerr << "尝试寻找的Key: " << mean_key << std::endl;
+        std::cerr << "请检查 .wts 文件，核对层名拼写（是否多了或少了 .cv1 或 .conv 等）" << std::endl;
+        exit(-1); // 发现错误立即停止，防止后续报 -1 或段错误
+    }
     const float* running_mean = static_cast<const float*>(weightMap[lname+".running_mean"].values);
-    const float* running_var = static_cast<const float*>(weightMap[lname+".running_var"].values);;
-    const float* gamma = static_cast<const float*>(weightMap[lname+".weight"].values);;
-    const float* beta = static_cast<const float*>(weightMap[lname+".bias"].values);;
+    const float* running_var = static_cast<const float*>(weightMap[lname+".running_var"].values);
+    const float* gamma = static_cast<const float*>(weightMap[lname+".weight"].values);
+    const float* beta = static_cast<const float*>(weightMap[lname+".bias"].values);
     const int len = weightMap[lname+".running_mean"].count;
 
     float* scval = reinterpret_cast<float *>(malloc(sizeof(float)*len));
@@ -34,13 +43,16 @@ static nvinfer1::IScaleLayer* addBatchNorm2d(nvinfer1::INetworkDefinition* netwo
     }
     nvinfer1::Weights power{nvinfer1::DataType::kFLOAT,powval,len};
 
-    nvinfer1::IScaleLayer* output = network->addScale(input,nvinfer1::ScaleMode::kCHANNEL,shift,scale,power);
+   
 
     weightMap[lname+ ".shift"] =shift;
     weightMap[lname + ".scale"] = scale;
     weightMap[lname + ".power"] = power;
-  
-    assert(output && "addBatchNorm2d error");
+    nvinfer1::IScaleLayer* output = network->addScale(input,nvinfer1::ScaleMode::kCHANNEL,shift,scale,power);
+    if (!output) {
+        std::cerr << "addScale 失败，层名: " << lname << std::endl;
+        exit(-1);
+    }
     return output;
 
 
@@ -106,7 +118,7 @@ nvinfer1::IElementWiseLayer* C2F(nvinfer1::INetworkDefinition* network, nvinfer1
                                 bool shortcut, float e, std::string lname)
 {   
     int c_ = int((float)c_out * e);
-    nvinfer1::IElementWiseLayer* conv1 = convBnSiLu(network,input,weigthMap,c_out,1,1,0,lname+"cv1");
+    nvinfer1::IElementWiseLayer* conv1 = convBnSiLu(network,input,weigthMap,c_out,1,1,0,lname+".cv1");
     assert(conv1 && "C2F -> conv1 error");
 
     nvinfer1::Dims d = conv1->getOutput(0)->getDimensions();
@@ -126,7 +138,7 @@ nvinfer1::IElementWiseLayer* C2F(nvinfer1::INetworkDefinition* network, nvinfer1
         cat1 = network->addConcatenation(inputTensors,2);
     }
 
-    nvinfer1::IElementWiseLayer* conv2 = convBnSiLu(network,*cat1->getOutput(0),weigthMap,c_out,1,1,0,lname+"cv2");
+    nvinfer1::IElementWiseLayer* conv2 = convBnSiLu(network,*cat1->getOutput(0),weigthMap,c_out,1,1,0,lname+".cv2");
 
     assert(conv2 && "C2F -> conv2 error");
 
@@ -158,7 +170,7 @@ nvinfer1::IElementWiseLayer* SPPF(nvinfer1::INetworkDefinition* network, nvinfer
 
     nvinfer1::IConcatenationLayer* cat = network->addConcatenation(inputTensors,4);
 
-    nvinfer1::IElementWiseLayer* conv2 = convBnSiLu(network,*cat->getOutput(0),weightMap,c_out,1,1,0,lname+"cv2");
+    nvinfer1::IElementWiseLayer* conv2 = convBnSiLu(network,*cat->getOutput(0),weightMap,c_out,1,1,0,lname+".cv2");
 
     assert(conv2 && "SPPF -> conv2 error");
 

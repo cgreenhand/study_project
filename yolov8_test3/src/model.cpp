@@ -80,7 +80,7 @@ static std::map<std::string, nvinfer1::Weights> loadWeight(const std::string& wt
         uint32_t size;
         std::string name;
         input >> name >> std::dec >> size;
-        // 
+        
         if (size == 0 || name.empty()) {
             std::cout << "！！！发现异常权重项: " << name << " Size: " << size << std::endl;
         }
@@ -143,14 +143,20 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     nvinfer1::IElementWiseLayer* conv7 = 
         convBnSiLu(network,*conv6->getOutput(0),weightMap,get_width(1024,gw,max_channels),3,2,1,"model.7");
     nvinfer1::IElementWiseLayer* conv8 =
-        C2F(network,*conv7->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),get_depth(6,gd),true,0.5,"model.8");
-    nvinfer1::IElementWiseLayer* conv9 =
+        C2F(network,*conv7->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),get_depth(3,gd),true,0.5,"model.8");
+    auto d8 = conv8->getOutput(0)->getDimensions();
+    std::cout << "conv8 输出维度数量: " << d8.nbDims << std::endl;
+    
+        nvinfer1::IElementWiseLayer* conv9 =
         SPPF(network,*conv8->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),5,"model.9");
-
+    auto dims = conv9->getOutput(0)->getDimensions();
+    std::cout << "conv9 输出维度数量: " << dims.nbDims << std::endl;
+    assert(conv9 && "conv9 error");
 // 3. head
     float scale[] = {1.0, 2.0, 2.0}; 
     
     nvinfer1::IResizeLayer* upsample1 = network->addResize(*conv9->getOutput(0));
+    assert(upsample1 && "upsample1 error");
     upsample1->setResizeMode(nvinfer1::ResizeMode::kNEAREST);
     upsample1->setScales(scale,3);
     
