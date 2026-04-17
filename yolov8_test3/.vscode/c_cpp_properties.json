@@ -5,10 +5,10 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/local/cuda/include",
-                // "/home/happy/TensorRT-8.6.1.6/include",
-                "/home/gw/TensorRT-8.6.1.6/include",
+                "/home/happy/TensorRT-8.6.1.6/include",
                 "${workspaceFolder}/include",
-                "${workspaceFolder}/plugin"
+                "${workspaceFolder}/plugin",
+                "/home/gw/TensorRT-8.6.1.6/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

@@ -123,8 +123,8 @@ nvinfer1::IElementWiseLayer* C2F(nvinfer1::INetworkDefinition* network, nvinfer1
 
     nvinfer1::Dims d = conv1->getOutput(0)->getDimensions();
 
-    nvinfer1::ISliceLayer* split1 = network->addSlice(*conv1->getOutput(0),nvinfer1::Dims3{0,0,0},nvinfer1::Dims{d.d[0]/2,d.d[1],d.d[2]},nvinfer1::Dims{1,1,1});
-    nvinfer1::ISliceLayer* split2 = network->addSlice(*conv1->getOutput(0),nvinfer1::Dims3{d.d[0]/2,0,0},nvinfer1::Dims{d.d[0]/2,d.d[1],d.d[2]},nvinfer1::Dims{1,1,1});
+    nvinfer1::ISliceLayer* split1 = network->addSlice(*conv1->getOutput(0),nvinfer1::Dims3{0,0,0},nvinfer1::Dims3{d.d[0]/2,d.d[1],d.d[2]},nvinfer1::Dims3{1,1,1});
+    nvinfer1::ISliceLayer* split2 = network->addSlice(*conv1->getOutput(0),nvinfer1::Dims3{d.d[0]/2,0,0},nvinfer1::Dims3{d.d[0]/2,d.d[1],d.d[2]},nvinfer1::Dims3{1,1,1});
 
     nvinfer1::ITensor * bottlencek_in = split2->getOutput(0);
     nvinfer1::ITensor* inputTensor0[] = {split1->getOutput(0),split2->getOutput(0)};

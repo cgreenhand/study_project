@@ -2,10 +2,16 @@ cmake_minimum_required(VERSION 3.10)
 
 project(yolov8)
 
-add_definitions(-std=c++17)
-add_definitions(-DAPI_EXPORTS)
+# add_definitions(-std=c++17)
+# add_definitions(-DAPI_EXPORTS)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Debug)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+    # 如果你也需要调试 .cu 文件内部逻辑，可以加上这一行
+    set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -g -G") 
+endif()
+
 
 set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 enable_language(CUDA)
@@ -25,10 +31,10 @@ else()
   link_directories(/usr/local/cuda/lib64)
 
   # tensorrt
-  include_directories(/home/happy/TensorRT-8.6.1.6/include)
-  link_directories(/home/happy/TensorRT-8.6.1.6/lib)
-  #  include_directories(/home/lindsay/TensorRT-7.2.3.4/include)
-  #  link_directories(/home/lindsay/TensorRT-7.2.3.4/lib)
+  # include_directories(/home/happy/TensorRT-8.6.1.6/include)
+  # link_directories(/home/happy/TensorRT-8.6.1.6/lib)
+   include_directories(/home/gw/TensorRT-8.6.1.6/include)
+   link_directories(/home/gw/TensorRT-8.6.1.6/lib)
 
 
 endif()

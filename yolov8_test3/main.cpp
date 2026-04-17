@@ -14,17 +14,21 @@ class Logger : public nvinfer1::ILogger {
 } gLogger;
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        std::cerr << "用法: " << argv[0] << " <weights_path> <engine_path>" << std::endl;
-        std::cerr << "示例: " << argv[0] << " ./yolov8n.wts ./yolov8n.engine" << std::endl;
-        return -1;
-    }
+    // if (argc != 3) {
+    //     std::cerr << "用法: " << argv[0] << " <weights_path> <engine_path>" << std::endl;
+    //     std::cerr << "示例: " << argv[0] << " ./yolov8n.wts ./yolov8n.engine" << std::endl;
+    //     return -1;
+    // }
 
-    std::string wts_path = argv[1];
-    std::string engine_path = argv[2];
+    // std::string wts_path = argv[1];
+    // std::string engine_path = argv[2];
+
+    std::string wts_path = "/home/gw/workspace/UP/projects/study_project/yolov8_test3/yolov8s.wts";
+    std::string engine_path = "/home/gw/workspace/UP/projects/study_project/yolov8_test3/yolov8s.engine";
 
     // 1. 初始化推理引擎构建器
     nvinfer1::IBuilder* builder = nvinfer1::createInferBuilder(gLogger);
+
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
 
     // 2. 设置模型缩放参数 (以 YOLOv8n 为例)
