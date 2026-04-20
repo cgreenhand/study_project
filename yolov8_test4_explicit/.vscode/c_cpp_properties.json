@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/cuda/include",
+                "/home/happy/TensorRT-8.6.1.6/include",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/plugin",
+                "/home/gw/TensorRT-8.6.1.6/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

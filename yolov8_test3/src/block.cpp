@@ -55,14 +55,12 @@ static nvinfer1::IScaleLayer* addBatchNorm2d(nvinfer1::INetworkDefinition* netwo
     }
     return output;
 
-
-
 }
 
 static inline nvinfer1::IElementWiseLayer* addSiLU(nvinfer1::INetworkDefinition* network, nvinfer1::ITensor& input)
 {
     nvinfer1::IActivationLayer* sigmoid = network->addActivation(input,nvinfer1::ActivationType::kSIGMOID);
-    nvinfer1::IElementWiseLayer* output = network->addElementWise(*sigmoid->getOutput(0),input,nvinfer1::ElementWiseOperation::kPOW);
+    nvinfer1::IElementWiseLayer* output = network->addElementWise(*sigmoid->getOutput(0),input,nvinfer1::ElementWiseOperation::kPROD);
 
     assert(output && "siLU error");
     return output;

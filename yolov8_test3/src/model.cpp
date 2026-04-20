@@ -118,7 +118,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
                                     const std::string& wts_path, float gd, float gw, int max_channels)
 {
     std::map<std::string,nvinfer1::Weights> weightMap = loadWeight(wts_path);
-
+    // nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH;
     nvinfer1::INetworkDefinition* network = builder->createNetworkV2(0U);
 
 // 1. input
