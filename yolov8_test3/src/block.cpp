@@ -72,9 +72,9 @@ static nvinfer1::IElementWiseLayer* addBottleNeck(nvinfer1::INetworkDefinition* 
                                                     std::map<std::string, nvinfer1::Weights>& weightMap, int ch1, int ch2 , bool shortcut, float e, std::string lname)
 {
 
-    int c_ = int (ch2 * e);
+    // int c_ = int (ch2 * e);
 
-    nvinfer1::IElementWiseLayer* conv1 = convBnSiLu(network,input,weightMap,c_,3,1,1,lname+".cv1");
+    nvinfer1::IElementWiseLayer* conv1 = convBnSiLu(network,input,weightMap,ch1,3,1,1,lname+".cv1");
     assert(conv1 && "addBottleNeck cv1 error");
 
     nvinfer1::IElementWiseLayer* conv2 = convBnSiLu(network,*conv1->getOutput(0),weightMap,ch2,3,1,1,lname+".cv2");

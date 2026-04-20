@@ -137,21 +137,21 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     nvinfer1::IElementWiseLayer* conv4 =
         C2F(network,*conv3->getOutput(0),weightMap,get_width(256,gw,max_channels),get_width(256,gw,max_channels),get_depth(6,gd),true,0.5,"model.4");
     nvinfer1::IElementWiseLayer* conv5 = 
-        convBnSiLu(network,*conv4->getOutput(0),weightMap,get_width(256,gw,max_channels),3,2,1,"model.5");
+        convBnSiLu(network,*conv4->getOutput(0),weightMap,get_width(512,gw,max_channels),3,2,1,"model.5");
     nvinfer1::IElementWiseLayer* conv6 =
         C2F(network,*conv5->getOutput(0),weightMap,get_width(512,gw,max_channels),get_width(512,gw,max_channels),get_depth(6,gd),true,0.5,"model.6");
     nvinfer1::IElementWiseLayer* conv7 = 
         convBnSiLu(network,*conv6->getOutput(0),weightMap,get_width(1024,gw,max_channels),3,2,1,"model.7");
     nvinfer1::IElementWiseLayer* conv8 =
         C2F(network,*conv7->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),get_depth(3,gd),true,0.5,"model.8");
-    auto d8 = conv8->getOutput(0)->getDimensions();
-    std::cout << "conv8 输出维度数量: " << d8.nbDims << std::endl;
+    // auto d8 = conv8->getOutput(0)->getDimensions();
+    // std::cout << "conv8 输出维度数量: " << d8.nbDims << std::endl;
     
         nvinfer1::IElementWiseLayer* conv9 =
         SPPF(network,*conv8->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),5,"model.9");
     auto dims = conv9->getOutput(0)->getDimensions();
-    std::cout << "conv9 输出维度数量: " << dims.nbDims << std::endl;
-    assert(conv9 && "conv9 error");
+    // std::cout << "conv9 输出维度数量: " << dims.nbDims << std::endl;
+    // assert(conv9 && "conv9 error");
 // 3. head
     float scale[] = {1.0, 2.0, 2.0}; 
     
@@ -175,7 +175,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     nvinfer1::IElementWiseLayer* conv15 = C2F(network,*cat14->getOutput(0),weightMap,get_width(256,gw,max_channels),get_width(256,gw,max_channels),get_depth(3,gd),false,0.5,"model.15");
 
 
-    nvinfer1::IElementWiseLayer* conv16 = convBnSiLu(network,*conv15->getOutput(0),weightMap,256,3,2,1,"model.16");
+    nvinfer1::IElementWiseLayer* conv16 = convBnSiLu(network,*conv15->getOutput(0),weightMap,get_width(256, gw, max_channels),3,2,1,"model.16");
 
     nvinfer1::ITensor* inputTensor17[] = {conv16->getOutput(0),conv12->getOutput(0)};
     nvinfer1::IConcatenationLayer* cat17 = network->addConcatenation(inputTensor17,2);
@@ -183,7 +183,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     nvinfer1::IElementWiseLayer* conv18 = C2F(network,*cat17->getOutput(0),weightMap,get_width(512,gw,max_channels),get_width(512,gw,max_channels),get_depth(3,gd),false,0.5,"model.18");
 
 
-    nvinfer1::IElementWiseLayer* conv19 = convBnSiLu(network,*conv18->getOutput(0),weightMap,512,3,2,1,"model.19");
+    nvinfer1::IElementWiseLayer* conv19 = convBnSiLu(network,*conv18->getOutput(0),weightMap,get_width(512,gw,max_channels),3,2,1,"model.19");
 
     nvinfer1::ITensor* inputTensor20[] = {conv19->getOutput(0),conv9->getOutput(0)};
     nvinfer1::IConcatenationLayer* cat20 = network->addConcatenation(inputTensor20,2);
