@@ -14,6 +14,9 @@ public:
                     int maxOut, bool is_segmentation, bool is_pose, bool is_obb, const int* strides, int stridesLength);
 
     YoloPlugin(const void* data, size_t length);
+    // 拷贝构造函数
+    YoloPlugin(const YoloPlugin& other);
+
     ~YoloPlugin();
     IPluginV2DynamicExt* clone() const noexcept override;
 
@@ -67,8 +70,8 @@ private:
     bool is_segmentation_;
     bool is_pose_;
     bool is_obb_;
-    int* mStrides;
-    int mStridesLength;        
+    int mStridesLength;
+    int* mStrides;        
 };
 
 
