@@ -71,7 +71,10 @@ private:
     bool is_pose_;
     bool is_obb_;
     int mStridesLength;
-    int* mStrides;        
+    int* mStrides;
+    
+    int* mDeviceStrides;
+    
 };
 
 
@@ -100,5 +103,7 @@ private:
     std::string mNamespace;
 
 };
+
+REGISTER_TENSORRT_PLUGIN(YoloPluginCreator);
 
 }
