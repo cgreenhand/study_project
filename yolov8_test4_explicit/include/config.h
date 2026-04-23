@@ -6,7 +6,7 @@ namespace yoloConfig{
     inline const char* kOutputTensorName = "output";
     inline const int kClsNum = 80;
     inline const int kMinBatch = 1;
-    inline const int kManBatch = 1;
+    inline const int kMaxBatch = 1;
     inline const int kOptBatch = 1;
     inline const int kInputSize = 640; 
     inline const int kNumberOfPoints = 17;

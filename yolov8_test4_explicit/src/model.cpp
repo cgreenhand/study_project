@@ -73,4 +73,17 @@ static std::map<std::string, nvinfer1::Weights> loadWeight(const std::string& wt
     return weightMap;
 }
 
+nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig, nvinfer1::DataType dt, const std::string& wts_path, float gd, float gw, int max_channels)
+{
+    std::map<std::string, nvinfer1::Weights> weightMap = loadWeight(wts_path);
+    
+    auto flag = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+    nvinfer1::INetworkDefinition* network = builder->createNetworkV2(flag);
 
+    // input
+    nvinfer1::ITensor* data = network->addInput(yoloConfig::kInputTensorName, dt, nvinfer1::Dims4{-1,3,yoloConfig::kInputSize,yoloConfig::kInputSize});
+
+    // backbone
+
+
+}
