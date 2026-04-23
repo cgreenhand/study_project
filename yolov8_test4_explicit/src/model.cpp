@@ -156,9 +156,86 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
         C2F(network,*cat20->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),get_depth(3,gd),false,0.5,"model.21");
     
     // Detect 三个检测头 每个检测头分 box和cls  box走DFL cls正常结果
-    // p3 p4 p5 进行不同操作
+    // p3  p4  p5 进行不同操作
+    // 15 18 512
+    int base_in_channel = (gw == 1.25) ? 80 : 64;
+    int base_out_channel = (gw == 0.25) ? std::max(64, std::min(yoloConfig::kClsNum, 100)) : get_width(256, gw, max_channels);
+    // strides 
+    nvinfer1::IElementWiseLayer* conv_layers[] = {conv3, conv5, conv7};
+    int strides[sizeof(conv_layers) / sizeof(conv_layers[0])];
+    calculateStrides(conv_layers, sizeof(conv_layers) / sizeof(conv_layers[0]), kInputH, strides);
+    int stridesLength = sizeof(strides) / sizeof(int);
+
+    // p3
+
+    // box
+    nvinfer1::IElementWiseLayer* conv22_cv2_0_0 = 
+        convBnSiLu(network,*conv15->getOutput(0),weightMap,base_in_channel,3,1,1,"model.22.cv2.0.0");
+    nvinfer1::IElementWiseLayer* conv22_cv2_0_1 = 
+        convBnSiLu(network,*conv22_cv2_0_0->getOutput(0),weightMap,base_in_channel,3,1,1,"model.22.cv2.0.1");
+    nvinfer1::IConvolutionLayer* conv22_cv2_0_2 = 
+        network->addConvolutionNd(*conv22_cv2_0_1->getOutput(0),64,nvinfer1::DimsHW{1,1},weightMap["model.22.cv2.0.2.weight"],weightMap["model.22.cv2.0.2.bias"]);
+    conv22_cv2_0_2->setStrideNd(nvinfer1::DimsHW{1,1});
+    conv22_cv2_0_2->setPadding(nvinfer1::DimsHW{0,0});
+    // 进行dfl
+    nvinfer1::IShuffleLayer* shuff_0_0 = network->addShuffle(*conv22_cv2_0_2->getOutput(0));
+    shuff_0_0->setReshapeDimensions(nvinfer1::Dims3{0,64,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1])});
+    nvinfer1::IShuffleLayer * dfl_0 = DFL(network,*shuff_0_0->getOutput(0),weightMap,4,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1]),1,1,0,"model.22.dfl.conv.weight");
 
 
+    // cls
+    nvinfer1::IElementWiseLayer* conv22_cv3_0_0 =
+        convBnSiLu(network,*conv15->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.0.0");
+    nvinfer1::IElementWiseLayer* conv22_cv3_0_1 = 
+        convBnSiLu(network,*conv22_cv3_0_0->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.0.1");
+    nvinfer1::IConvolutionLayer* conv22_cv3_0_2 =
+        network->addConvolutionNd(*conv22_cv3_0_1->getOutput(0),yoloConfig::kClsNum,nvinfer1::DimsHW{1,1},weightMap["model.22.cv3.0.2.weight"],weightMap["model.22.cv3.0.2.bias"]);
+    conv22_cv3_0_2->setStrideNd(nvinfer1::DimsHW{1,1});
+    conv22_cv3_0_2->setPadding(nvinfer1::DimsHW{0,0});
+
+    // p4
+
+    // box
+    nvinfer1::IElementWiseLayer* conv22_cv2_1_0 = 
+        convBnSiLu(network,*conv18->getOutput(0),weightMap,base_in_channel,3,1,1,"model.22.cv2.1.0");
+    nvinfer1::IElementWiseLayer* conv22_cv2_1_1 = 
+        convBnSiLu(network,*conv22_cv2_1_0->getOutput(0),weightMap,base_in_channel,3,1,1,"model.22.cv2.1.1");
+    nvinfer1::IConvolutionLayer* conv22_cv2_1_2 = 
+        network->addConvolutionNd(*conv22_cv2_1_1->getOutput(0),64,nvinfer1::DimsHW{1,1},weightMap["model.22.cv2.1.2.weight"],weightMap["model.22.cv2.1.2.bias"]);
+    conv22_cv2_1_2->setStrideNd(nvinfer1::DimsHW{1,1});
+    conv22_cv2_1_2->setPadding(nvinfer1::DimsHW{0,0});
+    // cls
+    nvinfer1::IElementWiseLayer* conv22_cv3_1_0 =
+        convBnSiLu(network,*conv18->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.1.0");
+    nvinfer1::IElementWiseLayer* conv22_cv3_1_1 = 
+        convBnSiLu(network,*conv22_cv3_1_0->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.1.1");
+    nvinfer1::IConvolutionLayer* conv22_cv3_1_2 =
+        network->addConvolutionNd(*conv22_cv3_1_1->getOutput(0),yoloConfig::kClsNum,nvinfer1::DimsHW{1,1},weightMap["model.22.cv3.1.2.weight"],weightMap["model.22.cv3.1.2.bias"]);
+    conv22_cv3_1_2->setStrideNd(nvinfer1::DimsHW{1,1});
+    conv22_cv3_1_2->setPadding(nvinfer1::DimsHW{0,0});
+    
+    // p5
+
+    // box
+    nvinfer1::IElementWiseLayer* conv22_cv2_2_0 = 
+        convBnSiLu(network,*conv21->getOutput(0),weightMap,base_in_channel,3,1,1,"model.22.cv2.2.0");
+    nvinfer1::IElementWiseLayer* conv22_cv2_2_1 = 
+        convBnSiLu(network,*conv22_cv2_2_0->getOutput(0),weightMap,base_in_channel,3,1,1,"model.22.cv2.2.1");
+    nvinfer1::IConvolutionLayer* conv22_cv2_2_2 = 
+        network->addConvolutionNd(*conv22_cv2_2_1->getOutput(0),64,nvinfer1::DimsHW{1,1},weightMap["model.22.cv2.2.2.weight"],weightMap["model.22.cv2.2.2.bias"]);
+    conv22_cv2_2_2->setStrideNd(nvinfer1::DimsHW{1,1});
+    conv22_cv2_2_2->setPadding(nvinfer1::DimsHW{0,0});
+    // cls
+    nvinfer1::IElementWiseLayer* conv22_cv3_2_0 =
+        convBnSiLu(network,*conv21->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.2.0");
+    nvinfer1::IElementWiseLayer* conv22_cv3_2_1 = 
+        convBnSiLu(network,*conv22_cv3_2_0->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.2.1");
+    nvinfer1::IConvolutionLayer* conv22_cv3_2_2 =
+        network->addConvolutionNd(*conv22_cv3_2_1->getOutput(0),yoloConfig::kClsNum,nvinfer1::DimsHW{1,1},weightMap["model.22.cv3.2.2.weight"],weightMap["model.22.cv3.2.2.bias"]);
+    conv22_cv3_2_2->setStrideNd(nvinfer1::DimsHW{1,1});
+    conv22_cv3_2_2->setPadding(nvinfer1::DimsHW{0,0});
+
+    // dfl
 
 
 }
