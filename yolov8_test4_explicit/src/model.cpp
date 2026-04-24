@@ -179,8 +179,9 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     conv22_cv2_0_2->setPadding(nvinfer1::DimsHW{0,0});
     // 进行dfl
     nvinfer1::IShuffleLayer* shuff_0_0 = network->addShuffle(*conv22_cv2_0_2->getOutput(0));
-    shuff_0_0->setReshapeDimensions(nvinfer1::Dims3{0,64,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1])});
-    nvinfer1::IShuffleLayer * dfl_0 = DFL(network,*shuff_0_0->getOutput(0),weightMap,4,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1]),1,1,0,"model.22.dfl.conv.weight");
+    shuff_0_0->setReshapeDimensions(nvinfer1::Dims3{0,64,(yoloConfig::kInputSize / strides[0]) * (yoloConfig::kInputSize / strides[0])});
+    nvinfer1::IShuffleLayer * dfl_0 = DFL(network,*shuff_0_0->getOutput(0),weightMap,4,(yoloConfig::kInputSize / strides[0]) * (yoloConfig::kInputSize / strides[0]),1,1,0,"model.22.dfl.conv.weight");
+
 
 
     // cls
@@ -193,6 +194,15 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     conv22_cv3_0_2->setStrideNd(nvinfer1::DimsHW{1,1});
     conv22_cv3_0_2->setPadding(nvinfer1::DimsHW{0,0});
 
+    nvinfer1::IShuffleLayer* shuff_0_1 = network->addShuffle(*conv22_cv3_0_2->getOutput(0));
+    shuff_0_1->setReshapeDimensions(nvinfer1::Dims3{0,yoloConfig::kClsNum,(yoloConfig::kInputSize / strides[0]) * (yoloConfig::kInputSize / strides[0])});
+    nvinfer1::ITensor* inputTensor_shuff_0[] = {dfl_0->getOutput(0),shuff_0_1->getOutput(0)};
+    nvinfer1::IConcatenationLayer* cat_p3 = network->addConcatenation(inputTensor_shuff_0,2);
+    cat_p3->setAxis(1);
+
+
+    // 进行concat n，4，grid + n,cls_num,grid  = n,4+cls_num,grid
+
     // p4
 
     // box
@@ -204,6 +214,11 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
         network->addConvolutionNd(*conv22_cv2_1_1->getOutput(0),64,nvinfer1::DimsHW{1,1},weightMap["model.22.cv2.1.2.weight"],weightMap["model.22.cv2.1.2.bias"]);
     conv22_cv2_1_2->setStrideNd(nvinfer1::DimsHW{1,1});
     conv22_cv2_1_2->setPadding(nvinfer1::DimsHW{0,0});
+    // 进行dfl
+    nvinfer1::IShuffleLayer* shuff_1_0 = network->addShuffle(*conv22_cv2_1_2->getOutput(0));
+    shuff_1_0->setReshapeDimensions(nvinfer1::Dims3{0,64,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1])});
+    nvinfer1::IShuffleLayer * dfl_1 = DFL(network,*shuff_1_0->getOutput(0),weightMap,4,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1]),1,1,0,"model.22.dfl.conv.weight");
+
     // cls
     nvinfer1::IElementWiseLayer* conv22_cv3_1_0 =
         convBnSiLu(network,*conv18->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.1.0");
@@ -213,6 +228,12 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
         network->addConvolutionNd(*conv22_cv3_1_1->getOutput(0),yoloConfig::kClsNum,nvinfer1::DimsHW{1,1},weightMap["model.22.cv3.1.2.weight"],weightMap["model.22.cv3.1.2.bias"]);
     conv22_cv3_1_2->setStrideNd(nvinfer1::DimsHW{1,1});
     conv22_cv3_1_2->setPadding(nvinfer1::DimsHW{0,0});
+
+    nvinfer1::IShuffleLayer* shuff_1_1 = network->addShuffle(*conv22_cv3_1_2->getOutput(0));
+    shuff_1_1->setReshapeDimensions(nvinfer1::Dims3{0,yoloConfig::kClsNum,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1])});
+    nvinfer1::ITensor* inputTensor_shuff_1[] = {dfl_1->getOutput(0),shuff_1_1->getOutput(0)};
+    nvinfer1::IConcatenationLayer* cat_p4 = network->addConcatenation(inputTensor_shuff_0,2);
+    cat_p4->setAxis(1);
     
     // p5
 
@@ -225,6 +246,11 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
         network->addConvolutionNd(*conv22_cv2_2_1->getOutput(0),64,nvinfer1::DimsHW{1,1},weightMap["model.22.cv2.2.2.weight"],weightMap["model.22.cv2.2.2.bias"]);
     conv22_cv2_2_2->setStrideNd(nvinfer1::DimsHW{1,1});
     conv22_cv2_2_2->setPadding(nvinfer1::DimsHW{0,0});
+    // 进行dfl
+    nvinfer1::IShuffleLayer* shuff_2_0 = network->addShuffle(*conv22_cv2_2_2->getOutput(0));
+    shuff_2_0->setReshapeDimensions(nvinfer1::Dims3{0,64,(yoloConfig::kInputSize / strides[2]) * (yoloConfig::kInputSize / strides[2])});
+    nvinfer1::IShuffleLayer * dfl_2 = DFL(network,*shuff_2_0->getOutput(0),weightMap,4,(yoloConfig::kInputSize / strides[2]) * (yoloConfig::kInputSize / strides[2]),1,1,0,"model.22.dfl.conv.weight");
+
     // cls
     nvinfer1::IElementWiseLayer* conv22_cv3_2_0 =
         convBnSiLu(network,*conv21->getOutput(0),weightMap,base_out_channel,3,1,1,"model.22.cv3.2.0");
@@ -234,8 +260,18 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
         network->addConvolutionNd(*conv22_cv3_2_1->getOutput(0),yoloConfig::kClsNum,nvinfer1::DimsHW{1,1},weightMap["model.22.cv3.2.2.weight"],weightMap["model.22.cv3.2.2.bias"]);
     conv22_cv3_2_2->setStrideNd(nvinfer1::DimsHW{1,1});
     conv22_cv3_2_2->setPadding(nvinfer1::DimsHW{0,0});
+    
+    nvinfer1::IShuffleLayer* shuff_2_1 = network->addShuffle(*conv22_cv3_1_2->getOutput(0));
+    shuff_2_1->setReshapeDimensions(nvinfer1::Dims3{0,yoloConfig::kClsNum,(yoloConfig::kInputSize / strides[2]) * (yoloConfig::kInputSize / strides[2])});
+    nvinfer1::ITensor* inputTensor_shuff_2[] = {dfl_2->getOutput(0),shuff_2_1->getOutput(0)};
+    nvinfer1::IConcatenationLayer* cat_p5 = network->addConcatenation(inputTensor_shuff_2,2);
+    cat_p4->setAxis(1);
 
-    // dfl
+
+    // p3 p4 p5均已经完成 最后进行 坐标解码  经过dfl后的情况是
+    //  yoloLayer 处理->  p3: (4+cls_num,6400)  p4: (4+cls_num,1600)  p5: (4+cls_num,400)
+    //   4表示是在代表在特征图上的 ltrb   经过yoloLayer变为 在kInputSize上的 ltrb 
+    // 使用plugin
 
 
 }

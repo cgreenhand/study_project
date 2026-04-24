@@ -226,6 +226,7 @@ size_t YoloPlugin::getWorkspaceSize(PluginTensorDesc const* inputs, int32_t nbIn
 }        
 
 
+// 插件运行的函数
 int32_t YoloPlugin::enqueue(PluginTensorDesc const* inputDesc, PluginTensorDesc const* outputDesc,
         void const* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
 {
