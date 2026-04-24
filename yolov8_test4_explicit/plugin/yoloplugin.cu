@@ -32,7 +32,24 @@ __device__ float sigmoid(float x) {
 }
 
 
+
+
+
 namespace nvinfer1{
+
+// p3 p4 p5均已经完成 最后进行 坐标解码  经过dfl后的情况是
+//  yoloLayer 处理->  p3: (4+cls_num,6400)  p4: (4+cls_num,1600)  p5: (4+cls_num,400)
+//   4表示是在代表在特征图上的 ltrb   经过yoloLayer变为 在kInputSize上的 ltrb 
+// 使用plugin
+// n,4+cls_num,grid -> n,5,grid
+__global__ void CalDetection(const float* input, float* output, int numElements, int maxoutobjects,
+    const int grid_h, int grid_w, const int stride, int classes, int nk, float confkeypoints, int outputElem,
+    bool is_segmentation, bool is_pose, bool is_obb)
+{
+    
+}
+
+
 
 
 // lifecycle
@@ -230,7 +247,7 @@ size_t YoloPlugin::getWorkspaceSize(PluginTensorDesc const* inputs, int32_t nbIn
 int32_t YoloPlugin::enqueue(PluginTensorDesc const* inputDesc, PluginTensorDesc const* outputDesc,
         void const* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
 {
-
+    
 }
 
 
