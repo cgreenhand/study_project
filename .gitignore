@@ -1,3 +1,6 @@
 *.engine
 build/
 *.wts
+*.pt
+.qoder
+arms_cache

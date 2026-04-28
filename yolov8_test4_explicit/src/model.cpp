@@ -73,7 +73,7 @@ static std::map<std::string, nvinfer1::Weights> loadWeight(const std::string& wt
     return weightMap;
 }
 
-nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig, nvinfer1::DataType dt, const std::string& wts_path, float gd, float gw, int max_channels)
+nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig config, nvinfer1::DataType dt, const std::string& wts_path, float gd, float gw, int max_channels)
 {
     std::map<std::string, nvinfer1::Weights> weightMap = loadWeight(wts_path);
     
@@ -99,7 +99,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     nvinfer1::IElementWiseLayer* conv6 = 
         C2F(network,*conv5->getOutput(0),weightMap,get_width(512,gw,max_channels),get_width(512,gw,max_channels),get_depth(6,gd),true,0.5,"model.6");
     nvinfer1::IElementWiseLayer* conv7 = 
-        convBnSiLu(network,*conv7->getOutput(0),weightMap,get_width(512,gw,max_channels),3,2,1,"model.7");
+        convBnSiLu(network,*conv6->getOutput(0),weightMap,get_width(512,gw,max_channels),3,2,1,"model.7");
     nvinfer1::IElementWiseLayer* conv8 = 
         C2F(network,*conv7->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),get_depth(3,gd),true,0.5,"model.8");
     nvinfer1::IElementWiseLayer* conv9 =
@@ -150,7 +150,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     
     nvinfer1::ITensor* inputTensor20[] = {conv19->getOutput(0),conv9->getOutput(0)};
     nvinfer1::IConcatenationLayer* cat20 = network->addConcatenation(inputTensor20,2);
-    cat17->setAxis(1);
+    cat20->setAxis(1);
     //  TODO 这里通道是否正确呢
     nvinfer1::IElementWiseLayer* conv21 = 
         C2F(network,*cat20->getOutput(0),weightMap,get_width(1024,gw,max_channels),get_width(1024,gw,max_channels),get_depth(3,gd),false,0.5,"model.21");
@@ -163,7 +163,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     // strides 
     nvinfer1::IElementWiseLayer* conv_layers[] = {conv3, conv5, conv7};
     int strides[sizeof(conv_layers) / sizeof(conv_layers[0])];
-    calculateStrides(conv_layers, sizeof(conv_layers) / sizeof(conv_layers[0]), kInputH, strides);
+    calculateStrides(conv_layers, sizeof(conv_layers) / sizeof(conv_layers[0]), yoloConfig::kInputSize, strides);
     int stridesLength = sizeof(strides) / sizeof(int);
 
     // p3
@@ -232,7 +232,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     nvinfer1::IShuffleLayer* shuff_1_1 = network->addShuffle(*conv22_cv3_1_2->getOutput(0));
     shuff_1_1->setReshapeDimensions(nvinfer1::Dims3{0,yoloConfig::kClsNum,(yoloConfig::kInputSize / strides[1]) * (yoloConfig::kInputSize / strides[1])});
     nvinfer1::ITensor* inputTensor_shuff_1[] = {dfl_1->getOutput(0),shuff_1_1->getOutput(0)};
-    nvinfer1::IConcatenationLayer* cat_p4 = network->addConcatenation(inputTensor_shuff_0,2);
+    nvinfer1::IConcatenationLayer* cat_p4 = network->addConcatenation(inputTensor_shuff_1,2);
     cat_p4->setAxis(1);
     
     // p5
@@ -265,7 +265,7 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     shuff_2_1->setReshapeDimensions(nvinfer1::Dims3{0,yoloConfig::kClsNum,(yoloConfig::kInputSize / strides[2]) * (yoloConfig::kInputSize / strides[2])});
     nvinfer1::ITensor* inputTensor_shuff_2[] = {dfl_2->getOutput(0),shuff_2_1->getOutput(0)};
     nvinfer1::IConcatenationLayer* cat_p5 = network->addConcatenation(inputTensor_shuff_2,2);
-    cat_p4->setAxis(1);
+    cat_p5->setAxis(1);
 
 
     // p3 p4 p5均已经完成 最后进行 坐标解码  经过dfl后的情况是
@@ -273,5 +273,5 @@ nvinfer1::IHostMemory* buildYolov8Det(nvinfer1::IBuilder* builder, nvinfer1::IBu
     //   4表示是在代表在特征图上的 ltrb   经过yoloLayer变为 在kInputSize上的 ltrb 
     // 使用plugin
 
-
+    
 }

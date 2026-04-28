@@ -41,12 +41,44 @@ namespace nvinfer1{
 //  yoloLayer 处理->  p3: (4+cls_num,6400)  p4: (4+cls_num,1600)  p5: (4+cls_num,400)
 //   4表示是在代表在特征图上的 ltrb   经过yoloLayer变为 在kInputSize上的 ltrb 
 // 使用plugin
+// 显式batch
 // n,4+cls_num,grid -> n,5,grid
-__global__ void CalDetection(const float* input, float* output, int numElements, int maxoutobjects,
-    const int grid_h, int grid_w, const int stride, int classes, int nk, float confkeypoints, int outputElem,
+// 
+__global__ void CalDetection(
+    const float* input,      // 输入地址: [Batch, info_len, numElements]
+    float* output,           // 输出地址: [Batch, 1 + max_obj * outputElem]
+    int numElements,         // 当前尺度的总点数 (如 6400)
+    int maxoutobjects,       // 最大允许输出物体数
+    const int grid_h,        // 特征图高 (如 80)
+    const int grid_w,        // 特征图宽 (如 80)
+    const int stride,        // 当前步长 (如 8)
+    int classes,             // 类别数
+    int nk,                  // 关键点数 (N_kpts)
+    float confThreshold,     // 分数阈值
+    int outputElem,          // 每个物体输出占用的 float 数量 (通常为 6 或更多)
     bool is_segmentation, bool is_pose, bool is_obb)
 {
-    
+    // 针对不同的strid 进行启动不同的cuda kernel
+    // 1. 确定是那一整图片的
+    int img_id = blockIdx.y;
+    auto idx = threadIdx.x + blockDim.x * blockIdx.x;
+    int info_len = 4+classes+ (is_segmentation ? 32:0) +(is_pose ? nk*3:0) + (is_obb?1:0);
+    // 本张图片的开始位置  batch,info_len,grid
+    const float* curr_int = input + img_id * numElements * info_len;
+    // 图片的输出位置
+    float* curr_out = output + img_id * maxoutobjects * outputElem;
+
+    float max_score = 0.0f;
+    int label = -1;
+    for(int i = 0; i < classes; i++){
+        float socre = curr_int[idx+(4+i)*numElements];
+        if(socre > max_score){
+            max_score = socre;
+        }
+    }
+
+
+
 }
 
 

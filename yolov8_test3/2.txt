@@ -1,0 +1,4 @@
+trtexec --loadEngine=yolov8s.engine \
+        --plugins=./build/libmyplugins.so \
+        --exportLayerInfo=tree.json \
+        --profilingVerbosity=detailed
