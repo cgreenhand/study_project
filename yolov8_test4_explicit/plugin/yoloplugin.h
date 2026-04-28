@@ -11,7 +11,7 @@ class API YoloPlugin: public IPluginV2DynamicExt{
 public:
     // lifecycle
     YoloPlugin(int classCount, int numberofpoints, float confthreshkeypoints, int netWidth, int netHeight,
-                    int maxOut, bool is_segmentation, bool is_pose, bool is_obb, const int* strides, int stridesLength);
+                    int maxOut, bool is_segmentation, bool is_pose, bool is_obb, int OutputElem, const int* strides, int stridesLength);
 
     YoloPlugin(const void* data, size_t length);
     // 拷贝构造函数
@@ -70,9 +70,9 @@ private:
     bool is_segmentation_;
     bool is_pose_;
     bool is_obb_;
+    int mOutputElem;
     int mStridesLength;
     int* mStrides;
-    
     int* mDeviceStrides;
     
 };

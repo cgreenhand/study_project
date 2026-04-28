@@ -42,7 +42,7 @@ namespace nvinfer1{
 //   4表示是在代表在特征图上的 ltrb   经过yoloLayer变为 在kInputSize上的 ltrb 
 // 使用plugin
 // 显式batch
-// n,4+cls_num,grid -> n,5,grid
+// n,4+cls_num,grid -> n,5,grid / n,grid,5
 // 
 __global__ void CalDetection(
     const float* input,      // 输入地址: [Batch, info_len, numElements]
@@ -62,22 +62,52 @@ __global__ void CalDetection(
     // 1. 确定是那一整图片的
     int img_id = blockIdx.y;
     auto idx = threadIdx.x + blockDim.x * blockIdx.x;
+    if(idx >= numElements) return ;
     int info_len = 4+classes+ (is_segmentation ? 32:0) +(is_pose ? nk*3:0) + (is_obb?1:0);
     // 本张图片的开始位置  batch,info_len,grid
-    const float* curr_int = input + img_id * numElements * info_len;
+    const float* cur_input = input + img_id * numElements * info_len;
     // 图片的输出位置
-    float* curr_out = output + img_id * maxoutobjects * outputElem;
+    float* cur_output = output + img_id * maxoutobjects * outputElem;
+    
 
+    
     float max_score = 0.0f;
     int label = -1;
     for(int i = 0; i < classes; i++){
-        float socre = curr_int[idx+(4+i)*numElements];
-        if(socre > max_score){
-            max_score = socre;
+        float score = cur_input[idx+(4+i)*numElements];
+        if(score > max_score){
+            max_score = score;
+            label = i;
         }
     }
+    if(max_score  < confThreshold) return;
 
+    // 如果超过最大输出框
+    int count = (int)atomicAdd(cur_output, 1);
+    if (count >= maxoutobjects) return ;
+    // 为output赋值 一个thread赋值6个数字 [ l t r b label score]
+    float l = cur_input[idx + 0 * numElements];
+    float t = cur_input[idx + 1 * numElements];
+    float r = cur_input[idx + 2 * numElements];
+    float b = cur_input[idx + 3 * numElements];
 
+    float grid_x = float(idx % grid_w);
+    float grid_y = float(idx / grid_w);
+
+    float x1 = (grid_x - l) * stride;
+    float y1 = (grid_y - t) * stride;
+    float x2 = (grid_x + r) * stride;
+    float y2 = (grid_y + b) * stride;
+
+    int write_pos = 1 + count * outputElem;
+    cur_output[write_pos + 0] = x1;
+    cur_output[write_pos + 1] = y1;
+    cur_output[write_pos + 2] = x2;
+    cur_output[write_pos + 3] = y2;
+    cur_output[write_pos + 4] = max_score;
+    cur_output[write_pos + 5] = (float)label;
+
+    // 后续 segment pose obb的先不用管
 
 }
 
@@ -88,7 +118,7 @@ __global__ void CalDetection(
 
 // 正常初始化
 YoloPlugin::YoloPlugin(int classCount, int numberofpoints, float confthreshkeypoints, int netWidth, int netHeight,
-                       int maxOut, bool is_segmentation, bool is_pose, bool is_obb, 
+                       int maxOut, bool is_segmentation, bool is_pose, bool is_obb, int OutputElem,
                        const int* strides, int stridesLength)
     : mClassCount(classCount)
     , mNumberofpoints(numberofpoints)
@@ -99,6 +129,7 @@ YoloPlugin::YoloPlugin(int classCount, int numberofpoints, float confthreshkeypo
     , is_segmentation_(is_segmentation)
     , is_pose_(is_pose)
     , is_obb_(is_obb)
+    , mOutputElem(OutputElem)
     , mStridesLength(stridesLength)
     , mDeviceStrides(nullptr) 
 {
@@ -123,6 +154,7 @@ YoloPlugin::YoloPlugin(const void* data, size_t length)
     read(d,is_segmentation_);
     read(d,is_pose_);
     read(d,is_obb_);
+    read(d,mOutputElem);
     read(d,mStridesLength);
     mStrides = new int[mStridesLength];
     for(int i = 0; i < mStridesLength; i++){
@@ -151,6 +183,7 @@ YoloPlugin::YoloPlugin(const YoloPlugin& other): mClassCount(other.mClassCount)
     , is_segmentation_(other.is_segmentation_)
     , is_pose_(other.is_pose_)
     , is_obb_(other.is_obb_)
+    , mOutputElem(other.mOutputElem)
     , mStridesLength(other.mStridesLength)
     , mPluginNamespace(other.mPluginNamespace){
 
@@ -333,6 +366,9 @@ void YoloPlugin::destroy() noexcept
 void YoloPlugin::forwardGpu(const float* const* inputs, float* output, cudaStream_t stream, int mYoloV8netHeight,
                     int mYoloV8NetWidth, int batchSize)
 {
+
+    // 1. 初始化：清空每个batch的计数器 index 0
+    size_t batch_stride = (1 + yoloConfig::kMaxNumOutputBbox )
 
 }
       

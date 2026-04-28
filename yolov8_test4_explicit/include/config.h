@@ -11,7 +11,7 @@ namespace yoloConfig{
     inline const int kInputSize = 640; 
     inline const int kNumberOfPoints = 17;
     inline const int kConfThreshKeypoints = 0.5;
-    inline const int kMaxNumOutputBbox = 16800;
+    inline const int kMaxNumOutputBbox = 500;
     //  
 
     
